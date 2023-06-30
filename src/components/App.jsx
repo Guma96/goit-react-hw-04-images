@@ -7,23 +7,15 @@ import Searchbar from './Searchbar';
 import Notiflix from 'notiflix';
 import Loader from './Loader';
 
-let page = 1;
-
 const App = () => {
   const [inputData, setInputData] = useState('');
   const [items, setItems] = useState([]);
   const [status, setStatus] = useState('idle');
   const [totalHits, setTotalHits] = useState(0);
-  // state = {
-  //   inputData: '',
-  //   items: [],
-
-  //   status: 'idle',
-  //   totalHits: 0,
-  // };
+  const [page, setPage] = useState(1);
 
   const handleSubmit = async inputData => {
-    page = 1;
+    setPage(1);
     if (inputData.trim() === '') {
       Notiflix.Notify.info('You cannot search by empty field, try again.');
       return;
@@ -47,54 +39,44 @@ const App = () => {
       }
     }
   };
+
   const onNextPage = async () => {
     setStatus('pending');
 
     try {
-      const { hits } = await getGallery(inputData, (page += 1));
+      const { hits } = await getGallery(inputData, page + 1);
       setItems(prevState => [...prevState, ...hits]);
+      setPage(prevPage => prevPage + 1);
       setStatus('resolved');
     } catch (error) {
       setStatus('rejected');
     }
   };
 
-  if (status === 'idle') {
-    return (
-      <div className="App">
-        <Searchbar onSubmit={handleSubmit} />
-      </div>
-    );
-  }
-  if (status === 'pending') {
-    return (
-      <div className="App">
-        <Searchbar onSubmit={handleSubmit} />
-        <ImageGallery page={page} items={items} />
-        <Loader />
-        {totalHits > 12 && <Button onClick={onNextPage} />}
-      </div>
-    );
-  }
-  if (status === 'rejected') {
-    return (
-      <div className="App">
-        <Searchbar onSubmit={handleSubmit} />
-        <p>Something wrong, try later</p>
-      </div>
-    );
-  }
-  if (status === 'resolved') {
-    return (
-      <div className="App">
-        <Searchbar onSubmit={handleSubmit} />
-        <ImageGallery page={page} items={items} />
-        {totalHits > 12 && totalHits > items.length && (
-          <Button onClick={onNextPage} />
-        )}
-      </div>
-    );
-  }
+  return (
+    <div className="App">
+      <Searchbar onSubmit={handleSubmit} />
+      {status === 'idle' && <p>Enter a search term to find images.</p>}
+      {status === 'pending' && (
+        <>
+          <ImageGallery page={page} items={items} />
+          <Loader />
+          {totalHits > 12 && <Button onClick={onNextPage} />}
+        </>
+      )}
+      {status === 'rejected' && (
+        <p>Something went wrong. Please try again later.</p>
+      )}
+      {status === 'resolved' && (
+        <>
+          <ImageGallery page={page} items={items} />
+          {totalHits > 12 && totalHits > items.length && (
+            <Button onClick={onNextPage} />
+          )}
+        </>
+      )}
+    </div>
+  );
 };
 
 export default App;

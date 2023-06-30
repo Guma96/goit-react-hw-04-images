@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Button from './Button';
 import ImageGallery from './ImageGallery';
 import './App.css';
-import { fetchImages } from '../fetchImages/fetchImages';
+import { getGallery } from '../fetchImages/fetchImages';
 import Searchbar from './Searchbar';
 import Notiflix from 'notiflix';
 import Loader from './Loader';
@@ -30,7 +30,7 @@ const App = () => {
     } else {
       try {
         setStatus('pending');
-        const { totalHits, hits } = await fetchImages(inputData, page);
+        const { totalHits, hits } = await getGallery(inputData, page);
         if (hits.length < 1) {
           setStatus('idle');
           Notiflix.Notify.failure(
@@ -51,7 +51,7 @@ const App = () => {
     setStatus('pending');
 
     try {
-      const { hits } = await fetchImages(inputData, (page += 1));
+      const { hits } = await getGallery(inputData, (page += 1));
       setItems(prevState => [...prevState, ...hits]);
       setStatus('resolved');
     } catch (error) {
